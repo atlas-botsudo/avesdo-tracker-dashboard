@@ -537,8 +537,9 @@ def catch_all(path):
 
 
 def run_server():
-    print(f"Serving dashboard on http://127.0.0.1:{PORT} using {DATA_SOURCE} data")
-    app.run(host="127.0.0.1", port=PORT, debug=False)
+    host = "0.0.0.0"  # Must bind to 0.0.0.0 for Railway/cloud hosting
+    print(f"Serving dashboard on http://{host}:{PORT} using {DATA_SOURCE} data")
+    app.run(host=host, port=PORT, debug=False)
 
 
 if __name__ == "__main__":
