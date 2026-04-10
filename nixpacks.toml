@@ -1,11 +1,8 @@
 [phases.setup]
-nixPkgs = ["python312", "python312Packages.flask"]
+nixPkgs = ["python312"]
 
 [phases.install]
-cmds = []
-
-[phases.build]
-cmds = []
+cmds = ["python3 -m ensurepip --upgrade", "python3 -m pip install flask"]
 
 [start]
 cmd = "python3 server.py"
