@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avesdo Dev Tracker</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #141a23;
+      --panel-2: #1a2230;
+      --panel-3: #202a3a;
+      --text: #e8eef7;
+      --muted: #95a3b8;
+      --line: rgba(255, 255, 255, 0.08);
+      --accent: #6ec1ff;
+      --accent-2: #89e6c2;
+      --danger: #ff7575;
+      --shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+      --blue: #3a86ff;
+      --orange: #f4a261;
+      --green: #39c28a;
+      --gray: #8d99ae;
+      --chip-bg: rgba(255, 255, 255, 0.05);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --font: "SF Pro Display", "Segoe UI", "Helvetica Neue", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(58, 134, 255, 0.12), transparent 34%),
+        radial-gradient(circle at top right, rgba(57, 194, 138, 0.10), transparent 28%),
+        linear-gradient(180deg, #0a0f15 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: var(--font);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .app-shell {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: 1.7fr 1fr;
+      align-items: stretch;
+      margin-bottom: 22px;
+    }
+
+    .hero-card,
+    .stats-grid,
+    .filters,
+    .table-wrap,
+    .detail-panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .hero-card {
+      padding: 26px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .logout-link {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -80px auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(110, 193, 255, 0.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(110, 193, 255, 0.1);
+      color: #bfe3ff;
+      letter-spacing: 0.04em;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 16px 0 10px;
+      font-size: clamp(32px, 4vw, 48px);
+      line-height: 1;
+    }
+
+    .hero-copy {
+      max-width: 780px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      overflow: hidden;
+    }
+
+    .stat-card {
+      padding: 20px;
+      background: rgba(13, 17, 23, 0.55);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-value {
+      margin-top: 12px;
+      font-size: 34px;
+      font-weight: 700;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .filters {
+      padding: 18px;
+      position: sticky;
+      top: 20px;
+    }
+
+    .filters h2,
+    .table-top h2,
+    .detail-header h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      outline: none;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: rgba(110, 193, 255, 0.5);
+      box-shadow: 0 0 0 3px rgba(110, 193, 255, 0.12);
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 14px;
+      cursor: pointer;
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.12);
+    }
+
+    .button.primary {
+      background: linear-gradient(135deg, #287bff, #44baf4);
+      color: white;
+    }
+
+    .panel-note {
+      margin-top: 14px;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .table-wrap {
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .table-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .table-meta {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .city-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      max-width: 50%;
+    }
+
+    .chip {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: var(--chip-bg);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .table-scroll {
+      overflow: auto;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1150px;
+      background: rgba(0,0,0,0.12);
+    }
+
+    th,
+    td {
+      padding: 14px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #111925;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #b3c0d3;
+    }
+
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    tr.project-row {
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    tr.project-row:hover {
+      background: rgba(110, 193, 255, 0.06);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .badge.preconstruction {
+      color: #9bc4ff;
+      background: rgba(58, 134, 255, 0.18);
+    }
+
+    .badge.under-construction {
+      color: #ffcf98;
+      background: rgba(244, 162, 97, 0.18);
+    }
+
+    .badge.move-in-now,
+    .badge.move-in-future {
+      color: #a9f1cf;
+      background: rgba(57, 194, 138, 0.18);
+    }
+
+    .badge.complete {
+      color: #d0d6e1;
+      background: rgba(141, 153, 174, 0.18);
+    }
+
+    .name-cell {
+      display: grid;
+      gap: 4px;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding-top: 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .pagination-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .empty,
+    .loading,
+    .error {
+      padding: 32px 18px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .error {
+      color: #ffb4b4;
+    }
+
+    .detail-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 12, 0.62);
+      display: none;
+      justify-content: flex-end;
+      z-index: 20;
+    }
+
+    .detail-overlay.open {
+      display: flex;
+    }
+
+    .detail-panel {
+      width: min(520px, 100%);
+      height: 100%;
+      border-radius: 0;
+      border-left: 1px solid var(--line);
+      overflow: auto;
+      padding: 22px;
+      animation: slideIn 0.2s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(24px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      align-items: flex-start;
+    }
+
+    .icon-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .detail-item {
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .detail-item .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .detail-item .value {
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    details {
+      margin-top: 20px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 16px;
+      font-weight: 600;
+    }
+
+    pre {
+      margin: 0;
+      padding: 0 16px 16px;
+      color: #dce7f5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1080px) {
+      .hero,
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .city-chips {
+        max-width: none;
+        justify-content: flex-start;
+      }
+
+      .filters {
+        position: static;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .app-shell {
+        padding: 16px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .table-top,
+      .pagination {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="hero-top">
+          <div class="eyebrow">Local Dashboard</div>
+          <a class="logout-link" href="/logout">Logout</a>
+        </div>
+        <h1>Avesdo Dev Tracker</h1>
+        <p class="hero-copy">
+          Browse active development projects across Canada and the United States, filter the pipeline, inspect pricing and completion timelines,
+          and drill into the raw record behind every row.
+        </p>
+      </div>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-label">Total Active</div>
+          <div class="stat-value" id="statTotalActive">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Preconstruction</div>
+          <div class="stat-value" id="statPreconstruction">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Under Construction</div>
+          <div class="stat-value" id="statUnderConstruction">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Move-In Now</div>
+          <div class="stat-value" id="statMoveInNow">-</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="filters">
+        <h2>Filters</h2>
+        <div class="field">
+          <label for="statusFilter">Status</label>
+          <select id="statusFilter">
+            <option value="all-active">All Active</option>
+            <option value="preconstruction">Preconstruction</option>
+            <option value="under-construction">Under Construction</option>
+            <option value="move-in-now">Move-In Now</option>
+            <option value="complete">Complete</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="countryFilter">Country</label>
+          <select id="countryFilter">
+            <option value="">All</option>
+            <option value="CA">CA</option>
+            <option value="US">US</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cityFilter">City Search</label>
+          <input id="cityFilter" type="text" placeholder="Toronto, Brooklyn, Vancouver">
+        </div>
+        <div class="field">
+          <label for="searchFilter">Keyword Search</label>
+          <input id="searchFilter" type="text" placeholder="Project or builder name">
+        </div>
+        <div class="field">
+          <label for="limitFilter">Results Per Page</label>
+          <select id="limitFilter">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button class="button primary" id="applyFilters">Apply</button>
+          <button class="button" id="resetFilters">Reset</button>
+        </div>
+        <div class="panel-note" id="countryBreakdown">Loading country totals...</div>
+      </aside>
+
+      <main class="table-wrap">
+        <div class="table-top">
+          <div>
+            <h2>Projects</h2>
+            <div class="table-meta" id="resultsMeta">Loading projects...</div>
+          </div>
+          <div class="city-chips" id="topCities"></div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="name">Project Name</th>
+                <th class="sortable" data-sort="builder">Builder</th>
+                <th class="sortable" data-sort="city">City</th>
+                <th class="sortable" data-sort="state_province">Province/State</th>
+                <th class="sortable" data-sort="country">Country</th>
+                <th class="sortable" data-sort="status">Status</th>
+                <th class="sortable" data-sort="move_in_year">Move-In Year</th>
+                <th class="sortable" data-sort="price_min">Price Range</th>
+                <th class="sortable" data-sort="total_units">Units</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody id="projectsBody">
+              <tr><td colspan="10" class="loading">Loading projects...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div id="pageMeta">Page 1</div>
+          <div class="pagination-controls">
+            <button class="button" id="prevPage">Previous</button>
+            <button class="button" id="nextPage">Next</button>
+          </div>
+        </div>
+      </main>
+    </section>
+  </div>
+
+  <div class="detail-overlay" id="detailOverlay">
+    <aside class="detail-panel" id="detailPanel">
+      <div class="detail-header">
+        <div>
+          <h2 id="detailTitle">Project Detail</h2>
+          <div class="subtle" id="detailSubtitle"></div>
+        </div>
+        <button class="icon-button" id="closeDetail" aria-label="Close detail panel">✕</button>
+      </div>
+      <div class="detail-grid" id="detailGrid"></div>
+      <details>
+        <summary>Raw Data JSON</summary>
+        <pre id="rawDataBlock"></pre>
+      </details>
+    </aside>
+  </div>
+
+  <script>
+    const state = {
+      filters: {
+        status: 'all-active',
+        country: '',
+        city: '',
+        search: '',
+        limit: 50,
+        offset: 0,
+        sort_by: 'name',
+        sort_dir: 'asc'
+      },
+      pagination: {
+        total: 0,
+        has_more: false
+      }
+    };
+
+    const els = {
+      statTotalActive: document.getElementById('statTotalActive'),
+      statPreconstruction: document.getElementById('statPreconstruction'),
+      statUnderConstruction: document.getElementById('statUnderConstruction'),
+      statMoveInNow: document.getElementById('statMoveInNow'),
+      countryBreakdown: document.getElementById('countryBreakdown'),
+      topCities: document.getElementById('topCities'),
+      projectsBody: document.getElementById('projectsBody'),
+      resultsMeta: document.getElementById('resultsMeta'),
+      pageMeta: document.getElementById('pageMeta'),
+      detailOverlay: document.getElementById('detailOverlay'),
+      detailTitle: document.getElementById('detailTitle'),
+      detailSubtitle: document.getElementById('detailSubtitle'),
+      detailGrid: document.getElementById('detailGrid'),
+      rawDataBlock: document.getElementById('rawDataBlock'),
+      statusFilter: document.getElementById('statusFilter'),
+      countryFilter: document.getElementById('countryFilter'),
+      cityFilter: document.getElementById('cityFilter'),
+      searchFilter: document.getElementById('searchFilter'),
+      limitFilter: document.getElementById('limitFilter'),
+      applyFilters: document.getElementById('applyFilters'),
+      resetFilters: document.getElementById('resetFilters'),
+      prevPage: document.getElementById('prevPage'),
+      nextPage: document.getElementById('nextPage'),
+      closeDetail: document.getElementById('closeDetail')
+    };
+
+    function formatNumber(value) {
+      if (value === null || value === undefined || value === '') return '—';
+      return new Intl.NumberFormat().format(value);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function statusLabel(status) {
+      if (!status) return 'Unknown';
+      if (status.startsWith('move-in-') && status !== 'move-in-now') {
+        return `Move-In ${status.replace('move-in-', '')}`;
+      }
+      return status.replaceAll('-', ' ');
+    }
+
+    function statusClass(status) {
+      if (status === 'preconstruction') return 'preconstruction';
+      if (status === 'under-construction') return 'under-construction';
+      if (status === 'move-in-now') return 'move-in-now';
+      if (status === 'complete') return 'complete';
+      if (status && status.startsWith('move-in-')) return 'move-in-future';
+      return 'complete';
+    }
+
+    function formatPriceRange(item) {
+      return item.price_range || '—';
+    }
+
+    function formatLocation(item) {
+      const parts = [item.city, item.state_province, item.country].filter(Boolean);
+      return parts.length ? parts.join(', ') : '—';
+    }
+
+    function buildQuery(params) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== '' && value !== null && value !== undefined) {
+          query.set(key, value);
+        }
+      });
+      return query.toString();
+    }
+
+    async function fetchJson(path) {
+      const response = await fetch(path);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `Request failed: ${response.status}`);
+      }
+      return response.json();
+    }
+
+    async function loadStats() {
+      const stats = await fetchJson('/api/stats');
+      els.statTotalActive.textContent = formatNumber(stats.summary.total_active);
+      els.statPreconstruction.textContent = formatNumber(stats.summary.preconstruction);
+      els.statUnderConstruction.textContent = formatNumber(stats.summary.under_construction);
+      els.statMoveInNow.textContent = formatNumber(stats.summary.move_in_now);
+
+      els.countryBreakdown.textContent = stats.by_country
+        .map((row) => `${row.country}: ${formatNumber(row.count)}`)
+        .join(' • ');
+
+      els.topCities.innerHTML = stats.top_cities
+        .slice(0, 8)
+        .map((row) => {
+          const label = [row.city, row.state_province].filter(Boolean).join(', ');
+          return `<span class="chip">${escapeHtml(label)} · ${formatNumber(row.count)}</span>`;
+        })
+        .join('');
+    }
+
+    async function loadProjects() {
+      const query = buildQuery(state.filters);
+      els.projectsBody.innerHTML = '<tr><td colspan="10" class="loading">Loading projects...</td></tr>';
+      try {
+        const data = await fetchJson(`/api/projects?${query}`);
+        state.pagination = data.pagination;
+        renderProjects(data.items);
+        renderPagination();
+      } catch (error) {
+        els.projectsBody.innerHTML = `<tr><td colspan="10" class="error">${escapeHtml(error.message)}</td></tr>`;
+        els.resultsMeta.textContent = 'Failed to load projects';
+        els.pageMeta.textContent = 'Unavailable';
+      }
+    }
+
+    function renderProjects(items) {
+      if (!items.length) {
+        els.projectsBody.innerHTML = '<tr><td colspan="10" class="empty">No projects matched the current filters.</td></tr>';
+        els.resultsMeta.textContent = '0 results';
+        return;
+      }
+
+      els.projectsBody.innerHTML = items.map((item) => `
+        <tr class="project-row" data-project-id="${escapeHtml(item.id)}">
+          <td>
+            <div class="name-cell">
+              <strong>${escapeHtml(item.name)}</strong>
+              <span class="subtle">${escapeHtml(item.project_type || 'Project')}</span>
+            </div>
+          </td>
+          <td>${escapeHtml(item.builder_name || '—')}</td>
+          <td>${escapeHtml(item.city || '—')}</td>
+          <td>${escapeHtml(item.state_province || '—')}</td>
+          <td>${escapeHtml(item.country || '—')}</td>
+          <td><span class="badge ${statusClass(item.status)}">${escapeHtml(statusLabel(item.status))}</span></td>
+          <td>${escapeHtml(item.move_in_year || (item.status === 'move-in-now' ? 'Now' : '—'))}</td>
+          <td>${escapeHtml(formatPriceRange(item))}</td>
+          <td>${escapeHtml(item.total_units ? formatNumber(item.total_units) : '—')}</td>
+          <td>${item.source_url ? `<a href="${escapeHtml(item.source_url)}" target="_blank" rel="noreferrer">Open</a>` : '—'}</td>
+        </tr>
+      `).join('');
+
+      const start = state.filters.offset + 1;
+      const end = Math.min(state.filters.offset + state.filters.limit, state.pagination.total);
+      els.resultsMeta.textContent = `${formatNumber(state.pagination.total)} results • showing ${formatNumber(start)}-${formatNumber(end)} • sorted by ${state.filters.sort_by.replace('_', ' ')} ${state.filters.sort_dir}`;
+    }
+
+    function renderPagination() {
+      const page = Math.floor(state.filters.offset / state.filters.limit) + 1;
+      const totalPages = Math.max(1, Math.ceil((state.pagination.total || 0) / state.filters.limit));
+      els.pageMeta.textContent = `Page ${page} of ${totalPages}`;
+      els.prevPage.disabled = state.filters.offset === 0;
+      els.nextPage.disabled = !state.pagination.has_more;
+    }
+
+    function detailFields(project) {
+      return [
+        ['Builder', escapeHtml(project.builder_name)],
+        ['Address', escapeHtml(project.address)],
+        ['Location', escapeHtml(formatLocation(project))],
+        ['Status', escapeHtml(statusLabel(project.status))],
+        ['Expected Completion', escapeHtml(project.expected_completion)],
+        ['Move-In Year', escapeHtml(project.move_in_year || (project.status === 'move-in-now' ? 'Now' : null))],
+        ['Price Range', escapeHtml(project.price_range)],
+        ['Units', escapeHtml(project.total_units ? formatNumber(project.total_units) : null)],
+        ['Project Type', escapeHtml(project.project_type)],
+        ['Website', project.website ? `<a href="${escapeHtml(project.website)}" target="_blank" rel="noreferrer">Visit project site</a>` : null],
+        ['Source', project.source_url ? `<a href="${escapeHtml(project.source_url)}" target="_blank" rel="noreferrer">Open source listing</a>` : null],
+        ['Builder Website', project.builder_website ? `<a href="${escapeHtml(project.builder_website)}" target="_blank" rel="noreferrer">Visit builder site</a>` : null]
+      ].filter(([, value]) => value);
+    }
+
+    async function openDetail(projectId) {
+      els.detailGrid.innerHTML = '<div class="loading">Loading project detail...</div>';
+      els.rawDataBlock.textContent = '';
+      els.detailOverlay.classList.add('open');
+      try {
+        const project = await fetchJson(`/api/projects/${encodeURIComponent(projectId)}`);
+        els.detailTitle.textContent = project.name;
+        els.detailSubtitle.textContent = `${project.builder_name || 'Unknown builder'} • ${formatLocation(project)}`;
+        els.detailGrid.innerHTML = detailFields(project).map(([label, value]) => `
+          <div class="detail-item">
+            <div class="label">${escapeHtml(label)}</div>
+            <div class="value">${value}</div>
+          </div>
+        `).join('');
+        els.rawDataBlock.textContent = JSON.stringify(project.raw_data, null, 2);
+      } catch (error) {
+        els.detailTitle.textContent = 'Project Detail';
+        els.detailSubtitle.textContent = 'Failed to load project';
+        els.detailGrid.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function closeDetail() {
+      els.detailOverlay.classList.remove('open');
+    }
+
+    function syncFilterInputs() {
+      els.statusFilter.value = state.filters.status;
+      els.countryFilter.value = state.filters.country;
+      els.cityFilter.value = state.filters.city;
+      els.searchFilter.value = state.filters.search;
+      els.limitFilter.value = String(state.filters.limit);
+    }
+
+    function applyFiltersFromInputs() {
+      state.filters.status = els.statusFilter.value;
+      state.filters.country = els.countryFilter.value;
+      state.filters.city = els.cityFilter.value.trim();
+      state.filters.search = els.searchFilter.value.trim();
+      state.filters.limit = Number(els.limitFilter.value);
+      state.filters.offset = 0;
+      loadProjects();
+    }
+
+    function resetFilters() {
+      state.filters = {
+        status: 'all-active',
+        country: '',
+        city: '',
+        search: '',
+        limit: 50,
+        offset: 0,
+        sort_by: 'name',
+        sort_dir: 'asc'
+      };
+      syncFilterInputs();
+      loadProjects();
+    }
+
+    function toggleSort(sortBy) {
+      if (state.filters.sort_by === sortBy) {
+        state.filters.sort_dir = state.filters.sort_dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        state.filters.sort_by = sortBy;
+        state.filters.sort_dir = 'asc';
+      }
+      state.filters.offset = 0;
+      loadProjects();
+    }
+
+    document.querySelectorAll('th.sortable').forEach((th) => {
+      th.addEventListener('click', () => toggleSort(th.dataset.sort));
+    });
+
+    els.applyFilters.addEventListener('click', applyFiltersFromInputs);
+    els.resetFilters.addEventListener('click', resetFilters);
+    els.prevPage.addEventListener('click', () => {
+      state.filters.offset = Math.max(0, state.filters.offset - state.filters.limit);
+      loadProjects();
+    });
+    els.nextPage.addEventListener('click', () => {
+      if (state.pagination.has_more) {
+        state.filters.offset += state.filters.limit;
+        loadProjects();
+      }
+    });
+    els.projectsBody.addEventListener('click', (event) => {
+      const row = event.target.closest('.project-row');
+      if (!row) return;
+      openDetail(row.dataset.projectId);
+    });
+    els.closeDetail.addEventListener('click', closeDetail);
+    els.detailOverlay.addEventListener('click', (event) => {
+      if (event.target === els.detailOverlay) closeDetail();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeDetail();
+      if (event.key === 'Enter' && ['cityFilter', 'searchFilter'].includes(event.target.id)) {
+        applyFiltersFromInputs();
+      }
+    });
+
+    syncFilterInputs();
+    Promise.all([loadStats(), loadProjects()]).catch((error) => {
+      els.resultsMeta.textContent = `Failed to initialize: ${error.message}`;
+    });
+  </script>
+</body>
+</html>
